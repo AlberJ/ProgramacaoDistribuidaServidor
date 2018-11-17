@@ -20,7 +20,7 @@ public class ServidorTCP extends Thread {
 		for (Cliente c : ServidorTCP.clientes) {
 			if (c.getNome().equals(cli.getNome())) {
 				return false;
-			} 
+			}
 		}
 		clientes.add(cli);
 		return true;
@@ -33,7 +33,7 @@ public class ServidorTCP extends Thread {
 			}
 		}
 	}
-	
+
 	public String listarCliente() {
 		String lista = "Lista de Usuarios: \n";
 		for (Cliente c : ServidorTCP.clientes) {
@@ -41,8 +41,26 @@ public class ServidorTCP extends Thread {
 		}
 		return lista;
 	}
-	public static void main(String[] args) {
 
+	public boolean renameCliente(String novo, String antigo) {
+		// PROCURA SE O NOVO NOME JA EXITE
+		for (Cliente c : clientes) {
+			if (c.getNome().equals(novo)) {
+				return false;
+			}
+		}
+		// PROCURA PELO USUARIO NA LISTA PARA MUDAR SEU NOME
+		for (Cliente c : clientes) {
+			if (c.getNome().equals(antigo)) {
+				c.setNome(novo);
+				return true;
+			}
+		}
+		// NÃO ACHOU NENHUM USUARIO COM O ANTIGO NOME
+		return false;
+	}
+
+	public static void main(String[] args) {
 		try {
 			servidor = new ServerSocket(6500);
 			System.out.println("Servidor rodando...");
@@ -69,7 +87,7 @@ public class ServidorTCP extends Thread {
 			String comandos[] = null;
 
 			cli.setNome(in.readUTF());
-			
+
 			if (addCliente(cli)) {
 				out.writeUTF("Bem vindo " + cli.getNome());
 
@@ -85,7 +103,6 @@ public class ServidorTCP extends Thread {
 						switch (comandos[0]) {
 						case "bye":
 							msg = comandos[0];
-							System.out.println("pegou comando bye!");
 							break;
 						case "-all":
 							msg = comandos[0];
@@ -99,8 +116,11 @@ public class ServidorTCP extends Thread {
 							msg = listarCliente();
 							break;
 						case "rename":
-							msg = comandos[0];
-							System.out.println("pegou comando rename!");
+							if (renameCliente(comandos[1], comandos[2])) {
+								msg = "Renomeado com sucesso.";
+							} else {
+								msg = "Nome de usuário já em uso.";
+							}
 							break;
 
 						default:
@@ -112,19 +132,19 @@ public class ServidorTCP extends Thread {
 					}
 
 				} while (!comandos[0].equals("bye"));
-				
+
 				removeCliente(cli);
 				cli = null;
 				this.socket.close();
-				
-			}else{
-				msg= "User name ja em uso!";
+
+			} else {
+				msg = "User name ja em uso!";
 				out.writeUTF(msg);
 			}
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			System.out.println("Falha na Conexao... .. ."+" IOException: " + e);
+			System.out.println("Falha na Conexao..." + " IOException: " + e);
 		}
 
 	}
