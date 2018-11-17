@@ -59,6 +59,17 @@ public class ServidorTCP extends Thread {
 		// NÃO ACHOU NENHUM USUARIO COM O ANTIGO NOME
 		return false;
 	}
+	
+	public void enviaMensagemAll(String m) throws IOException{
+		for (Cliente c : clientes){
+			try{
+				c.out.writeUTF(m);
+			}catch (IOException e) {
+				// TODO Auto-generated catch block
+				System.out.println("Falha na Conexao..." + " IOException: " + e);
+			}
+		}
+	}
 
 	public static void main(String[] args) {
 		try {
@@ -81,7 +92,7 @@ public class ServidorTCP extends Thread {
 		try {
 			DataInputStream in = new DataInputStream(socket.getInputStream());
 			DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-			Cliente cli = new Cliente();
+			Cliente cli = new Cliente(out);
 			String msg = "";
 			String linha;
 			String comandos[] = null;
@@ -105,8 +116,9 @@ public class ServidorTCP extends Thread {
 							msg = comandos[0];
 							break;
 						case "-all":
-							msg = comandos[0];
-							System.out.println("pegou comando -all!");
+							msg = comandos[2];
+							
+							enviaMensagemAll(msg);
 							break;
 						case "-user":
 							msg = comandos[0];
