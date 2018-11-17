@@ -10,16 +10,14 @@ import java.util.logging.Logger;
 public class ServidorTCP extends Thread {
 	private static ArrayList<Cliente> clientes = new ArrayList<Cliente>();
 	private Socket socket;
-	// private String nome;
-	// private String id;
-	// private String porta;
+	private static ServerSocket servidor;
 
 	public ServidorTCP(Socket socket) {
 		this.socket = socket;
 	}
 
 	public boolean addCliente(Cliente cli) {
-		for (Cliente c : this.clientes) {
+		for (Cliente c : ServidorTCP.clientes) {
 			if (c.getNome().equals(cli.getNome())) {
 				return false;
 			} 
@@ -29,7 +27,7 @@ public class ServidorTCP extends Thread {
 	}
 
 	public void removeCliente(Cliente cli) {
-		for (Cliente c : this.clientes) {
+		for (Cliente c : ServidorTCP.clientes) {
 			if (c.getNome().equals(cli.getNome())) {
 				clientes.remove(c);
 			}
@@ -37,17 +35,16 @@ public class ServidorTCP extends Thread {
 	}
 	
 	public String listarCliente() {
-		String lista = "";
-		for (Cliente c : this.clientes) {
-			lista += c.getNome();
+		String lista = "Lista de Usuarios: \n";
+		for (Cliente c : ServidorTCP.clientes) {
+			lista += c.getNome() + "\n";
 		}
 		return lista;
 	}
 	public static void main(String[] args) {
 
 		try {
-			// SERVIDOR DISPONIBILIZA CONEXÃO
-			ServerSocket servidor = new ServerSocket(6500);
+			servidor = new ServerSocket(6500);
 			System.out.println("Servidor rodando...");
 
 			while (true) {
@@ -118,7 +115,8 @@ public class ServidorTCP extends Thread {
 
 				} while (!comandos[0].equals("bye"));
 			}else{
-				
+				msg= "User name ja em uso!";
+				out.writeUTF(msg);
 			}
 
 		} catch (IOException e) {
