@@ -72,6 +72,27 @@ public class ServidorTCP extends Thread {
 		}
 	}
 
+	public void enviaMensagemUser(String m, String remetente, Cliente emisor) {
+		boolean inexistente = true;
+		for (Cliente c : clientes) {
+			if (c.getNome().equals(remetente)) {
+				try {
+					c.out.writeUTF(m);
+					inexistente = false;
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		if (inexistente) {
+			try {
+				emisor.out.writeUTF("Usuário destino inexistente.");
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	public static void main(String[] args) {
 		try {
 			servidor = new ServerSocket(6500);
@@ -122,8 +143,8 @@ public class ServidorTCP extends Thread {
 							enviaMensagemAll(msg, cli);
 							break;
 						case "-user":
-							msg = comandos[0];
-							System.out.println("pegou comando -user!");
+							msg = comandos[1] + " > " + comandos[3];
+							enviaMensagemUser(msg, comandos[2], cli);
 							break;
 						case "list":
 							msg = listarCliente();
@@ -143,7 +164,7 @@ public class ServidorTCP extends Thread {
 						}
 
 						// SERVIDOR ECOA MENSAGEM
-//						out.writeUTF(msg);
+						// out.writeUTF(msg);
 					}
 
 				} while (!comandos[0].equals("bye"));
