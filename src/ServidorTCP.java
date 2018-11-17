@@ -59,8 +59,6 @@ public class ServidorTCP extends Thread {
 		}
 	}
 
-	
-
 	public void run() {
 		try {
 			DataInputStream in = new DataInputStream(socket.getInputStream());
@@ -114,6 +112,11 @@ public class ServidorTCP extends Thread {
 					}
 
 				} while (!comandos[0].equals("bye"));
+				
+				removeCliente(cli);
+				cli = null;
+				this.socket.close();
+				
 			}else{
 				msg= "User name ja em uso!";
 				out.writeUTF(msg);
@@ -121,7 +124,7 @@ public class ServidorTCP extends Thread {
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("Falha na Conexao... .. ."+" IOException: " + e);
 		}
 
 	}
