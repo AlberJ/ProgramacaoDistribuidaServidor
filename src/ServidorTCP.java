@@ -59,14 +59,15 @@ public class ServidorTCP extends Thread {
 		// NÃO ACHOU NENHUM USUARIO COM O ANTIGO NOME
 		return false;
 	}
-	
-	public void enviaMensagemAll(String m) throws IOException{
-		for (Cliente c : clientes){
-			try{
-				c.out.writeUTF(m);
-			}catch (IOException e) {
-				// TODO Auto-generated catch block
-				System.out.println("Falha na Conexao..." + " IOException: " + e);
+
+	public void enviaMensagemAll(String m, Cliente emisor) {
+		for (Cliente c : clientes) {
+			if (!c.getNome().equals(emisor.getNome())) {
+				try {
+					c.out.writeUTF(m);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}
@@ -114,11 +115,11 @@ public class ServidorTCP extends Thread {
 						switch (comandos[0]) {
 						case "bye":
 							msg = comandos[0];
+							out.writeUTF(msg);
 							break;
 						case "-all":
-							msg = comandos[2];
-							
-							enviaMensagemAll(msg);
+							msg = comandos[1] + " > " + comandos[2];
+							enviaMensagemAll(msg, cli);
 							break;
 						case "-user":
 							msg = comandos[0];
@@ -126,6 +127,7 @@ public class ServidorTCP extends Thread {
 							break;
 						case "list":
 							msg = listarCliente();
+							out.writeUTF(msg);
 							break;
 						case "rename":
 							if (renameCliente(comandos[1], comandos[2])) {
@@ -133,6 +135,7 @@ public class ServidorTCP extends Thread {
 							} else {
 								msg = "Nome de usuário já em uso.";
 							}
+							out.writeUTF(msg);
 							break;
 
 						default:
@@ -140,7 +143,7 @@ public class ServidorTCP extends Thread {
 						}
 
 						// SERVIDOR ECOA MENSAGEM
-						out.writeUTF(msg);
+//						out.writeUTF(msg);
 					}
 
 				} while (!comandos[0].equals("bye"));
