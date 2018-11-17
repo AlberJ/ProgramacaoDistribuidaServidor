@@ -2,12 +2,15 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class RecebeMensagem extends Thread {
 	private Socket socket;
-
+	private ArrayList<Cliente> clientes = new ArrayList<Cliente>();
+	private static Cliente cliente;
+	
 	public RecebeMensagem(Socket s) {
 		this.socket = s;
 	}
@@ -20,9 +23,14 @@ public class RecebeMensagem extends Thread {
 			String linha;
 			String comandos[] = null;
 			String nome = "";
-
+			
+			
+			this.cliente.setNome(nome);
+			out.writeUTF("Bem vindo " + cliente.getNome());
+			
+			
 			do {
-				if (!nome.equals("")) {
+//				if (!nome.equals("")) {
 					linha = in.readUTF();
 					msg = linha;
 					System.out.println(msg);
@@ -62,15 +70,36 @@ public class RecebeMensagem extends Thread {
 						// SERVIDOR ECOA MENSAGEM
 						out.writeUTF("eco " + msg);
 					}
-				} else {
-					nome = in.readUTF();
-					out.writeUTF("Bem vindo " + nome);
-				}
+//				} else {
+//					nome = in.readUTF();
+//					out.writeUTF("Bem vindo " + nome);
+//				}
 
-			} while (!nome.equals(""));
+			} while (!comandos[0].equals("bye"));
 
 		} catch (IOException ex) {
 			Logger.getLogger(RecebeMensagem.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
+	
+	public boolean addCliente(Cliente cli){
+		for (Cliente c : this.clientes){
+			if(c.getNome().equals(cli.getNome())){
+				return false;
+			}else{
+				cliente = cli;
+				clientes.add(cli);
+				return true;
+			}				
+		}
+		return false;
+	}
+	
+	public void removeCliente(Cliente cli){
+		for (Cliente c : this.clientes){
+			if(c.getNome().equals(cli.getNome())){
+				clientes.remove(c);
+			}
 		}
 	}
 }
