@@ -117,89 +117,94 @@ public class ServidorTCP extends Thread {
 			DataInputStream in = new DataInputStream(socket.getInputStream());
 			DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 			Cliente cli = new Cliente(out);
+			cli.setNome("");
 			String msg = "";
 			String linha;
 			String comandos[] = null;
 
-			cli.setNome(in.readUTF());
+			while (cli.getNome().equals("")) {
+				cli.setNome(in.readUTF());
+
+				if (addCliente(cli)) {
+					out.writeUTF("Renomeado com sucesso.");
+				} else {
+					msg = "Nome de usuário já em uso.";
+					out.writeUTF(msg);
+					cli.setNome("");
+				}
+			}
+			
+			out.writeUTF("Bem vindo "+cli.getNome());
 			cli.setIp(socket.getInetAddress().getHostAddress());
 			cli.setPorta(socket.getPort());
-			
-			if (addCliente(cli)) {
-				out.writeUTF("Bem vindo " + cli.getNome());
+			do {
+				linha = in.readUTF();
+				msg = linha;
+				comandos = linha.split(":");
+				for (String c : comandos) {
+					c.trim();
+				}
 
-				do {
-					linha = in.readUTF();
-					msg = linha;
-					comandos = linha.split(":");
-					for (String c : comandos) {
-						c.trim();
-					}
+				if (!msg.equals("")) {
+					switch (comandos[0]) {
+					case "bye":
+						msg = comandos[0];
+						out.writeUTF(msg);
+						break;
+					case "-all":
+						LocalDateTime l = LocalDateTime.now();
 
-					if (!msg.equals("")) {
-						switch (comandos[0]) {
-						case "bye":
-							msg = comandos[0];
-							out.writeUTF(msg);
-							break;
-						case "-all":
-							LocalDateTime l = LocalDateTime.now();
-							
-							msg = cli.getIp()+":"+cli.getPorta()+"/~"+comandos[1] + 
-							": " + comandos[2]+l.format(DateTimeFormatter.ofPattern("HH"))+
-							"h"+l.format(DateTimeFormatter.ofPattern("mm"))+" "+
-							l.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-							
-							enviaMensagemAll(msg, cli);
-							l = null;
-							break;
-						case "-user":
-							LocalDateTime t = LocalDateTime.now();
-							
-							msg = cli.getIp()+":"+cli.getPorta()+"/~"+comandos[1] + 
-							": " + comandos[3]+t.format(DateTimeFormatter.ofPattern("HH"))+
-							"h"+t.format(DateTimeFormatter.ofPattern("mm"))+" "+
-							t.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-							
-//							msg = cli.getIp()+":"+cli.getPorta()+"/~"+comandos[1] + 
-//									": "+comandos[3];
-							
-							enviaMensagemUser(msg, comandos[2], cli);
-							t = null;
-							break;
-						case "list":
-							msg = listarCliente();
-							out.writeUTF(msg);
-							break;
-						case "rename":
-							if (renameCliente(comandos[1], comandos[2])) {
-								msg = "Renomeado com sucesso.";
-							} else {
-								msg = "Nome de usuário já em uso.";
-							}
-							out.writeUTF(msg);
-							break;
+						msg = cli.getIp() + ":" + cli.getPorta() + "/~" + comandos[1] + ": "
+								+comandos[2]
+								+ l.format(DateTimeFormatter.ofPattern("HH")) + "h"
+								+ l.format(DateTimeFormatter.ofPattern("mm")) + " "
+								+ l.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 
-						default:
-							System.out.println("Comando inválido!");
+						enviaMensagemAll(msg, cli);
+						l = null;
+						break;
+					case "-user":
+						LocalDateTime t = LocalDateTime.now();
+
+						msg = cli.getIp() + ":" + cli.getPorta() + "/~" + comandos[1] + ": " 
+								+ comandos[3]
+								+ t.format(DateTimeFormatter.ofPattern("HH")) + "h"
+								+ t.format(DateTimeFormatter.ofPattern("mm")) + " "
+								+ t.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+
+						// msg = cli.getIp()+":"+cli.getPorta()+"/~"+comandos[1]
+						// +
+						// ": "+comandos[3];
+
+						enviaMensagemUser(msg, comandos[2], cli);
+						t = null;
+						break;
+					case "list":
+						msg = listarCliente();
+						out.writeUTF(msg);
+						break;
+					case "rename":
+						if (renameCliente(comandos[1], comandos[2])) {
+							msg = "Renomeado com sucesso.";
+						} else {
+							msg = "Nome de usuário já em uso.";
 						}
+						out.writeUTF(msg);
+						break;
 
-						// SERVIDOR ECOA MENSAGEM
-						// out.writeUTF(msg);
+					default:
+						out.writeUTF("Comando inválido!");
 					}
+				}
+			} while (!comandos[0].equals("bye"));
 
-				} while (!comandos[0].equals("bye"));
+			removeCliente(cli);
+			cli = null;
+			ServidorTCP.socket.close();
 
-				removeCliente(cli);
-				cli = null;
-				ServidorTCP.socket.close();
+		} catch (
 
-			} else {
-				msg = "User name ja em uso!";
-				out.writeUTF(msg);
-			}
-
-		} catch (IOException e) {
+		IOException e) {
 			System.out.println("Falha na Conexao..." + " IOException: " + e);
 		}
 	}
