@@ -2,7 +2,33 @@ import java.io.DataOutputStream;
 
 public class Cliente {
 	private String nome;
-	DataOutputStream out;
+	private DataOutputStream out;
+	private String ip;
+	private int porta;
+	
+	public DataOutputStream getOut() {
+		return out;
+	}
+
+	public void setOut(DataOutputStream out) {
+		this.out = out;
+	}
+
+	public String getIp() {
+		return ip;
+	}
+
+	public void setIp(String ip) {
+		this.ip = ip;
+	}
+
+	public int getPorta() {
+		return porta;
+	}
+
+	public void setPorta(int porta) {
+		this.porta = porta;
+	}
 	
 	public Cliente(DataOutputStream out){
 		this.out = out;

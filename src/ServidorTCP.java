@@ -3,17 +3,19 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ServidorTCP extends Thread {
 	private static ArrayList<Cliente> clientes = new ArrayList<Cliente>();
-	private Socket socket;
+	private static Socket socket;
 	private static ServerSocket servidor;
 
 	public ServidorTCP(Socket socket) {
-		this.socket = socket;
+		ServidorTCP.socket = socket;
 	}
 
 	public boolean addCliente(Cliente cli) {
@@ -64,7 +66,7 @@ public class ServidorTCP extends Thread {
 		for (Cliente c : clientes) {
 			if (!c.getNome().equals(emisor.getNome())) {
 				try {
-					c.out.writeUTF(m);
+					c.getOut().writeUTF(m);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -77,7 +79,7 @@ public class ServidorTCP extends Thread {
 		for (Cliente c : clientes) {
 			if (c.getNome().equals(remetente)) {
 				try {
-					c.out.writeUTF(m);
+					c.getOut().writeUTF(m);
 					inexistente = false;
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -86,7 +88,7 @@ public class ServidorTCP extends Thread {
 		}
 		if (inexistente) {
 			try {
-				emisor.out.writeUTF("Usuário destino inexistente.");
+				emisor.getOut().writeUTF("Usuário destino inexistente.");
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -99,7 +101,7 @@ public class ServidorTCP extends Thread {
 			System.out.println("Servidor rodando...");
 
 			while (true) {
-				Socket socket = servidor.accept();
+				socket = servidor.accept();
 
 				Thread thread = new ServidorTCP(socket);
 				thread.start();
@@ -120,7 +122,9 @@ public class ServidorTCP extends Thread {
 			String comandos[] = null;
 
 			cli.setNome(in.readUTF());
-
+			cli.setIp(socket.getInetAddress().getHostAddress());
+			cli.setPorta(socket.getPort());
+			
 			if (addCliente(cli)) {
 				out.writeUTF("Bem vindo " + cli.getNome());
 
@@ -139,12 +143,29 @@ public class ServidorTCP extends Thread {
 							out.writeUTF(msg);
 							break;
 						case "-all":
-							msg = comandos[1] + " > " + comandos[2];
+							LocalDateTime l = LocalDateTime.now();
+							
+							msg = cli.getIp()+":"+cli.getPorta()+"/~"+comandos[1] + 
+							": " + comandos[2]+l.format(DateTimeFormatter.ofPattern("HH"))+
+							"h"+l.format(DateTimeFormatter.ofPattern("mm"))+" "+
+							l.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+							
 							enviaMensagemAll(msg, cli);
+							l = null;
 							break;
 						case "-user":
-							msg = comandos[1] + " > " + comandos[3];
+							LocalDateTime t = LocalDateTime.now();
+							
+							msg = cli.getIp()+":"+cli.getPorta()+"/~"+comandos[1] + 
+							": " + comandos[3]+t.format(DateTimeFormatter.ofPattern("HH"))+
+							"h"+t.format(DateTimeFormatter.ofPattern("mm"))+" "+
+							t.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+							
+//							msg = cli.getIp()+":"+cli.getPorta()+"/~"+comandos[1] + 
+//									": "+comandos[3];
+							
 							enviaMensagemUser(msg, comandos[2], cli);
+							t = null;
 							break;
 						case "list":
 							msg = listarCliente();
@@ -171,7 +192,7 @@ public class ServidorTCP extends Thread {
 
 				removeCliente(cli);
 				cli = null;
-				this.socket.close();
+				ServidorTCP.socket.close();
 
 			} else {
 				msg = "User name ja em uso!";
@@ -179,9 +200,7 @@ public class ServidorTCP extends Thread {
 			}
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			System.out.println("Falha na Conexao..." + " IOException: " + e);
 		}
-
 	}
 }
