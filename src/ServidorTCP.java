@@ -117,7 +117,6 @@ public class ServidorTCP extends Thread {
 			DataInputStream in = new DataInputStream(socket.getInputStream());
 			DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 			Cliente cli = new Cliente(out);
-			cli.setNome("");
 			String msg = "";
 			String linha;
 			String comandos[] = null;
@@ -172,10 +171,6 @@ public class ServidorTCP extends Thread {
 								+ t.format(DateTimeFormatter.ofPattern("mm")) + " "
 								+ t.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 
-						// msg = cli.getIp()+":"+cli.getPorta()+"/~"+comandos[1]
-						// +
-						// ": "+comandos[3];
-
 						enviaMensagemUser(msg, comandos[2], cli);
 						t = null;
 						break;
@@ -199,12 +194,10 @@ public class ServidorTCP extends Thread {
 			} while (!comandos[0].equals("bye"));
 
 			removeCliente(cli);
-			cli = null;
 			ServidorTCP.socket.close();
-
-		} catch (
-
-		IOException e) {
+			System.out.println(cli.getNome()+" desconectou!");
+			
+		} catch (IOException e) {
 			System.out.println("Falha na Conexao..." + " IOException: " + e);
 		}
 	}

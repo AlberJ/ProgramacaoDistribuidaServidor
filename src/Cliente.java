@@ -6,6 +6,11 @@ public class Cliente {
 	private String ip;
 	private int porta;
 	
+	public Cliente(DataOutputStream out){
+		this.out = out;
+		this.nome = "";
+	}
+	
 	public DataOutputStream getOut() {
 		return out;
 	}
@@ -28,10 +33,6 @@ public class Cliente {
 
 	public void setPorta(int porta) {
 		this.porta = porta;
-	}
-	
-	public Cliente(DataOutputStream out){
-		this.out = out;
 	}
 	
 	public String getNome() {
